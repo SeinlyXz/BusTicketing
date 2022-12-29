@@ -1,0 +1,48 @@
+program book_ticket
+
+BEGIN
+   INIT
+   password, username
+
+	FOR login or register then book ticket
+	   IF login THEN
+		[IF true THEN
+		   READ username
+		   READ password
+			PRINT Login Successfull
+			
+			[SHOW empty seats
+		ELSE
+		   PRINT Wrong password/username, or you are not registered yet
+		   REPEAT true
+			UNTIL Login Successfull]
+	   ELSE IF
+		register THEN
+		   READ username
+		   READ password
+			COMPUTE save username and password > output1
+			PRINT Account Successfully Created
+		ELSE
+		   REPEAT login 
+	   ELSE 
+		exit THEN ---
+
+//booking process
+    SHOW    destination available
+		READ destination
+			IF destination choosen then
+				SHOW 	empty seats from database
+					IF empty THEN
+						book
+						ELSE choice for another seat or date
+							[IF agree THEN
+								REPEAT SHOW empty seats on database
+							ELSE ended the program]
+
+					IF book THEN 
+						READ passanger data
+						if done THEN
+							Print Token to be paid
+			ELSE 
+				exit
+END
