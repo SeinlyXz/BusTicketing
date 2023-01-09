@@ -1,18 +1,18 @@
 #include <iostream> // Input output
 #include <ctime>
-#include <time.h>
+// #include <time.h>
 #include "encryptions/sha256.h"
 #include <random>
 #include <fstream>
 #include <unistd.h>
 #include <string>
 #include <cstdlib>
-
+#include <iomanip>
 
 using namespace std;
 
-int fn, choosen_seats[30];
-string choosen_bus, choosen_dest, price, username1, token, tokenized_token;
+int fn, choosen_seats[30], price_sum, price;
+string choosen_bus, choosen_dest, username1, token, tokenized_token;
 char ulang, pesan_kembali;;
 
 void retry(){
@@ -41,36 +41,41 @@ void showMenu(){
 }
 
 void proses_ticketing(int jml_seat){
+    token = sha256(username1) + sha256(choosen_bus) + sha256(choosen_dest);
+    tokenized_token = sha256(token);
     cout << "[*] ---------- Pesanan Anda -------------\n";
     cout << "[*] Bus: \033[1;32m" << choosen_bus << "\033[0m\n";
     cout << "[*] Tujuan: \033[1;32m" << choosen_dest << "\033[0m\n";
-    cout << "[*] Tarif: \033[1;32m" << price << "\033[0m\n";
+    cout << "[*] Tarif: \033[1;32mRp. " << price_sum << "\033[0m\n";
     for (int i = 0; i < jml_seat; i++){
-        cout << "[*] Seat " << choosen_seats[i] << endl;
+        cout << "[*] Seat: " << choosen_seats[i] << endl;
     }
+    cout << "[*] Token pembayaran: \033[1;32m" << tokenized_token << "\033[0m\n";
     cout << "[*] Apakah Anda setuju?(y/t) ";
     cin >> ulang;
     if (tolower(ulang) == 't'){
         cout << "[*]\033[1;31m !!! Semua bus yang tersedia beserta trayeknya akan terhapus !!!\033[0m\n";
         cout << "[*] Apakah Anda yakin?(y/n) ";
         cin >> ulang;
+        if (ulang == 'y'){
+            exit(0);
+        }
     } else {
         ulang = 'n';
         
         // string token = username1_encrypted + choosen_bus + choosen_dest + price;
 
-        // string token = 
-
         fstream ticket_id;
         ifstream ticket_id_IN;
         ofstream ticket_id_OUT;
 
-        ticket_id_IN.open("TICKETING");
-        ticket_id_OUT.open("TICKETING",ios::app);
+        ticket_id_IN.open("Ticket_Lists");
+        ticket_id_OUT.open("Ticket_Lists",ios::app);
         if(ticket_id_IN.is_open()){
             ticket_id_OUT << "Token: " << tokenized_token << "\n";
             ticket_id_OUT << "Bus: " << choosen_bus << "\n";
             ticket_id_OUT << "Tujuan: " << choosen_dest << "\n";
+            ticket_id_OUT.close();
         }
         cout << "[*] Terimakasih atas pesanan Anda\n";
         cout << "[*] Ingin memesan kembali?(y/n) ";
@@ -84,8 +89,7 @@ void proses_ticketing(int jml_seat){
 }
 
 void AvailBus(){
-    int counter4,pilihan;
-    int arrayAcak[9] = {0,1,2,3,4,5,6,7,8};
+    int arrayAcak[9] = {0,1,2,3,4,5,6,7,8},pilihan;
     string tersedia[9] = {
         "Harapan Jaya",
         "Gunung Harta",
@@ -96,8 +100,8 @@ void AvailBus(){
         "Sinar Jaya", 
         "Sumber Alam",
         "PO. Haryanto"
-    };
-    string tujuan[9] = {
+    },
+    tujuan[9] = {
         "Jogja-Jakarta",
         "Lampung-Purwokerto",
         "Jakarta-Bandung",
@@ -108,17 +112,8 @@ void AvailBus(){
         "Malang-Jakarta",
         "Banten-Indramayu"
     };
-
-    string harga[9] = {
-        "Rp. 50.000",
-        "Rp. 60.000",
-        "Rp. 70.000",
-        "Rp. 80.000",
-        "Rp. 90.000",
-        "Rp. 100.000",
-        "Rp. 110.000",
-        "Rp. 120.000",
-        "Rp. 130.000",
+    int harga[9] = {
+        50000,60000,70000,80000,90000,100000,110000,120000,130000
     };
 
     fn = sizeof(arrayAcak) / sizeof(arrayAcak[0]);
@@ -131,10 +126,24 @@ void AvailBus(){
         tersedia[index] = temp;
     }
 
+    for (int i = 0; i < fn; i++){
+        int index = rand() % fn;
+        string temp = tujuan[i];
+        tujuan[i] = tujuan[index];
+        tujuan[index] = temp;
+    }
+    
+    for (int i = 0; i < fn; i++){
+        int index = rand() % fn;
+        int temp = harga[i];
+        harga[i] = harga[index];
+        harga[index] = temp;
+    }
+
     // Untuk memilih sejumlah x kursi
     srand(time(0));
     int a = rand() % 500, tempVar;
-    bool check;
+    bool check = false;
     char check_yakin = 'Y';
 
     // Komputer bakal nyariin nilai acak dari 0 - 30
@@ -148,10 +157,11 @@ void AvailBus(){
     menu3:
     showMenu();
     loginSuccess();
+
     cout << "[No.] Bus Tersedia:\n";
 
     for (int i = 0; i < a; i++){
-        cout << "[" << i+1 <<"] \033[1;32m" << tersedia[i] << "\033[0m - " << harga[i] << "\n" << "(" << tujuan[i] << ")\n" << "\n";
+        cout << "[" << i+1 <<"] \033[1;32m" << tersedia[i] << "\033[0m - " << "Rp. " << harga[i] << " " << "\n" << "(" << tujuan[i] << ")\n" << "\n";
     }
     cout << "[*] ctrl+c untuk exit\n";
     cout << "[*] ---------------------------\n";
@@ -221,6 +231,7 @@ void BusFunc(int arr[], int n){
     cout << "\n[*] -----------------------------------------";
     cout << "\n[*] Pilih sejumlah kursi. max (" << b << ") ";
     cin >> seatsSum;
+    price_sum = price * seatsSum;
     if (seatsSum <= b) {
         for (int i = 0, j; i < seatsSum; i++){
             cout << "[*] Kursi [" << i+1 << "] ";
@@ -281,9 +292,9 @@ int main(int argc, char *argv[])
 
     menu1:
     showMenu();
-    cout << "[1] Login" << endl;
-    cout << "[2] Register" << endl;
-    cout << "[x] Exit" << endl;
+    cout << "\033[1;32m[1] Login\033[0m" << endl;
+    cout << "\033[1;32m[2] Register\033[0m" << endl;
+    cout << "\033[1;31m[x] Exit\033[0m" << endl;
     cout << "[*] Choose> ";
     cin >> choose;
 
@@ -294,8 +305,6 @@ int main(int argc, char *argv[])
         cout << "[*] Username: ";
         cin >> username;
         username1 = username;
-        token = sha256(username1) + sha256(choosen_bus) + sha256(choosen_dest);
-        tokenized_token = sha256(token);
         cout << "[*] Password: ";
         cin >> password;
         encryptedPassword = sha256(password);
@@ -359,10 +368,12 @@ int main(int argc, char *argv[])
         cout << "[*] Password: ";
         cin >> password;
         
-        if (password.length() > 8 and password.length() < 100){
+        int min = 8, max = 100;
+
+        if (password.length() >= min and password.length() <= max){
             encryptedPassword = sha256(password);
         } else {
-            cout << "[*] Password harus lebih dari 8 huruf\n";
+            cout << "[*] Password harus lebih dari " << min << " huruf\n";
             sleep(2);
             goto menu4;
         }
